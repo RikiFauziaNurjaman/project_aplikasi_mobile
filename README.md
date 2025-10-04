@@ -1,10 +1,13 @@
 # project_aplikasi_mobile
 
-A new Flutter project.
+Ini adalah repositori resmi untuk proyek pengembangan aplikasi mobile pembaca komik kami.  
+Aplikasi ini bertujuan untuk menyediakan platform yang kaya fitur bagi para penggemar komik untuk menemukan, membaca, dan mengelola koleksi komik favorit mereka langsung dari perangkat seluler.
+
+---
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+A new Flutter project.
 
 A few resources to get you started if this is your first Flutter project:
 
