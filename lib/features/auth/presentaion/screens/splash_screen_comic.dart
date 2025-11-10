@@ -17,7 +17,7 @@ class _SplashScreenComicState extends State<SplashScreenComic> {
 	void initState() {
 		super.initState();
 		// 1 second duration
-		_timer = Timer(const Duration(seconds: 20), _onTimerComplete);
+		_timer = Timer(const Duration(seconds: 1), _onTimerComplete);
 	}
 
 		void _onTimerComplete() {
