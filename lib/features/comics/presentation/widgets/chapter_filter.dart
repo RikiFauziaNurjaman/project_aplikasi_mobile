@@ -21,6 +21,7 @@ class _ChapterFilterState extends State<ChapterFilter> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       height: 36,
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: ListView.builder(
@@ -42,7 +43,7 @@ class _ChapterFilterState extends State<ChapterFilter> {
                   _selectedFilterIndex = selected ? index : 0;
                 });
               },
-              backgroundColor: Colors.grey[800],
+              backgroundColor: const Color(0xFFBDB2B1),
               selectedColor: Colors.grey[300],
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8.0),

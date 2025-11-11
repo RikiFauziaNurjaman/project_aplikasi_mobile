@@ -12,11 +12,9 @@ class ChapterList extends StatelessWidget {
       delegate: SliverChildBuilderDelegate((BuildContext context, int index) {
         final chapter = chapters[index];
 
-        // Ambil gambar pertama dari list sebagai thumbnail
-        // Pastikan list tidak kosong sebelum mengambil index [0]
         final String thumbnailUrl = chapter.imageUrls.isNotEmpty
             ? chapter.imageUrls[0]
-            : 'images/placeholder.png'; // Sediakan gambar placeholder lokal jika kosong
+            : 'images/placeholder.png';
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -24,13 +22,13 @@ class ChapterList extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8.0),
-                // Ganti Image.network menjadi Image.asset
+
                 child: Image.asset(
-                  thumbnailUrl, // Gunakan path gambar lokal
+                  thumbnailUrl,
                   width: 100,
                   height: 70,
                   fit: BoxFit.cover,
-                  // Tambahkan errorBuilder untuk menangani jika asset tidak ditemukan
+
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
                       width: 100,
@@ -47,11 +45,10 @@ class ChapterList extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      // Gunakan title dari data chapter yang benar
                       chapter.title,
                       style: const TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                       maxLines: 1,
