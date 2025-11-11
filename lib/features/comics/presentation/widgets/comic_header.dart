@@ -10,27 +10,46 @@ class ComicHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Chapters",
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 126, 115, 255),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: const Text(
+              "Chapters",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
             ),
           ),
           const SizedBox(height: 12),
-          TextField(
-            decoration: InputDecoration(
-              hintText: 'Masukan chapter yang dicari',
-              hintStyle: TextStyle(color: Colors.grey[600]),
-              prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-              filled: true,
-              fillColor: Colors.grey[850],
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(9.0),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 0),
+          Container(
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFFBDB2B1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Masukan Chapter',
+                      hintStyle: const TextStyle(color: Colors.white70),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+                const Icon(Icons.search, color: Colors.white, size: 18),
+              ],
             ),
           ),
         ],

@@ -12,35 +12,30 @@ class ComicInfo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Judul komik
-          Text(
-            comic.title,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          // Penulis & view count
           Row(
             children: [
-              _buildInfoRow(Icons.person, comic.author),
-              const SizedBox(width: 16),
-              _buildInfoRow(Icons.visibility, comic.viewCount),
+              Text(
+                comic.title,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+
+              const Spacer(),
+              _buildRatingStars(comic.rating),
             ],
           ),
 
           const SizedBox(height: 8),
 
-          // Rating bintang
-          _buildRatingStars(comic.rating),
+          _buildInfoRow(Icons.person, comic.author),
+          const SizedBox(width: 25),
+          _buildInfoRow(Icons.visibility, comic.viewCount),
 
           const SizedBox(height: 16),
 
-          // Deskripsi
           Text(
             comic.description,
             style: const TextStyle(fontSize: 16, color: Colors.black),
@@ -55,9 +50,15 @@ class ComicInfo extends StatelessWidget {
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: Colors.grey[400]),
+        Icon(icon, size: 16, color: const Color.fromARGB(255, 0, 0, 0)),
         const SizedBox(width: 4),
-        Text(text, style: TextStyle(fontSize: 14, color: Colors.grey[400])),
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 14,
+            color: const Color.fromARGB(255, 0, 0, 0),
+          ),
+        ),
       ],
     );
   }
@@ -71,7 +72,7 @@ class ComicInfo extends StatelessWidget {
       } else if (i < rating + 0.5) {
         icon = Icons.star_half;
       }
-      stars.add(Icon(icon, color: Colors.yellow[700], size: 20));
+      stars.add(Icon(icon, color: Colors.yellow[700], size: 30));
     }
     return Row(children: stars);
   }
