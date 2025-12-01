@@ -16,7 +16,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
   int _selectedIndex = 0;
 
   static const List<Widget> _widgetOptions = <Widget>[
-    HomePage(),
+    HomeScreen(),
     TrendingPage(),
     FavoritesPage(),
     ProfilePage(),
