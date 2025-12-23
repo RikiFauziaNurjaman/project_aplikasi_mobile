@@ -14,6 +14,7 @@ var listComic = [
     viewCount: '2,222k views',
     tags: ['Action', 'Adventure', 'Fantasy'],
     chapters: onePieceChapters,
+    latestChapter: 'Chapter 1050',
   ),
 
   Comic(
@@ -27,6 +28,7 @@ var listComic = [
     viewCount: '3,120k views',
     tags: ['Action', 'Fantasy', 'Webtoon'],
     chapters: [],
+    latestChapter: 'Chapter 179',
   ),
 
   Comic(
@@ -40,6 +42,7 @@ var listComic = [
     viewCount: '1,980k views',
     tags: ['Action', 'Adventure', 'Ninja'],
     chapters: [],
+    latestChapter: 'Chapter 700',
   ),
 
   Comic(
@@ -53,6 +56,7 @@ var listComic = [
     viewCount: '800k views',
     tags: ['Comedy', 'Sci-Fi', 'Kids'],
     chapters: [],
+    latestChapter: 'Chapter 2000',
   ),
 
   Comic(
@@ -66,45 +70,49 @@ var listComic = [
     viewCount: '1,100k views',
     tags: ['Action', 'Martial Arts', 'Webtoon'],
     chapters: [],
+    latestChapter: 'Chapter 179',
   ),
 
   Comic(
     id: '6',
     title: 'One Punch Man',
     author: 'ONE',
-    coverUrl: 'images/cover/onepunchman.jpg',
+    coverUrl: 'images/cover/onepuchman.jpeg',
     description:
         'Kisah pahlawan yang bisa mengalahkan musuh hanya dengan satu pukulan.',
     rating: 4.4,
     viewCount: '2,500k views',
     tags: ['Action', 'Comedy', 'Superhero'],
     chapters: [],
+    latestChapter: 'Chapter 160',
   ),
 
   Comic(
     id: '7',
     title: 'Black Clover',
     author: 'Yuki Tabata',
-    coverUrl: 'images/cover/blackclover.jpg',
+    coverUrl: 'images/cover/backclover.jpeg',
     description:
         'Di dunia tempat sihir adalah segalanya, Asta terlahir sebagai yatim piatu yang miskin dan tidak bisa menggunakan sihir. Ia bercita-cita menjadi "Kaisar Sihir", posisi untuk penyihir terkuat, demi membuktikan kemampuannya dan menepati janji dengan seorang teman! Perjuangan seorang pemuda dalam meraih cita-cita, menjadi hidup lewat gambar yang menawan di kisah fantasi sihir ini!.',
     rating: 4.3,
     viewCount: '1,500k views',
     tags: ['Action', 'Comedy', 'Superhero'],
     chapters: [],
+    latestChapter: 'Chapter 340',
   ),
 
   Comic(
     id: '8',
     title: 'Boruto: Naruto Next Generations',
     author: 'MASASHI KISHIMOTO / MIKIO IKEMOTO',
-    coverUrl: 'images/cover/boruto.jpg',
+    coverUrl: 'images/cover/boruto.jpeg',
     description:
         'Sesuatu telah mengubah "memori" para warga. Boruto yang kini menjadi buron melarikan diri dari Konoha bersama Sasuke. Di tengah konflik itu, yang telah menanti keduanya adalah...',
     rating: 4.5,
     viewCount: '4,500k views',
     tags: ['Action', 'Comedy', 'Superhero'],
     chapters: [],
+    latestChapter: 'Chapter 90',
   ),
 
   Comic(
@@ -118,18 +126,20 @@ var listComic = [
     viewCount: '4,500k views',
     tags: ['Action', 'Comedy', 'Superhero'],
     chapters: [],
+    latestChapter: 'Chapter 200',
   ),
 
   Comic(
     id: '10',
     title: 'SAKAMOTO DAYS',
     author: 'YUTO SUZUKI',
-    coverUrl: 'images/cover/sakomoto.jpg',
+    coverUrl: 'images/cover/sakamoto.jpg',
     description:
         'Konon hiduplah seorang pembunuh bayaran terkuat bernama Taro Sakamoto. Dia ditakuti oleh para penjahat dan dikagumi oleh para pembunuh bayaran… Namun pada suatu hari, dia jatuh cinta pada seorang wanita!!! Sakamoto pun memilih untuk pensiun, menikah, dan mempunyai anak. Bahkan perut Sakamoto pun sampai membuncit! Siapa sangka sosok asli pria gempal pemilik toko kelontong itu adalah pembunuh bayaran legendaris?! Sebagai seorang ayah, dia berupaya melindungi keluarga dan juga keseharian mereka!.',
     rating: 4.5,
     viewCount: '4,500k views',
     tags: ['Action', 'Comedy', 'Superhero'],
     chapters: [],
+    latestChapter: 'Chapter 100',
   ),
 ];

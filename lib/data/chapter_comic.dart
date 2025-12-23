@@ -42,12 +42,21 @@ var onePieceChapters = [
     id: 'op_ch2',
     title: 'Chapter #2: Buggy the Clown',
     viewCount: '222k',
-    imageUrls: [],
+    imageUrls: [
+      'images/chapters/onepiece/chapter1/hal-2.png',
+      'images/chapters/onepiece/chapter1/hal-3.png',
+      'images/chapters/onepiece/chapter1/hal-4.png',
+      'images/chapters/onepiece/chapter1/hal-5.png',
+    ],
   ),
   Chapter(
     id: 'op_ch3',
     title: 'Chapter #3: Don Krieg',
     viewCount: '222k',
-    imageUrls: [],
+    imageUrls: [
+      'images/chapters/onepiece/chapter1/hal-3.png',
+      'images/chapters/onepiece/chapter1/hal-4.png',
+      'images/chapters/onepiece/chapter1/hal-5.png',
+    ],
   ),
 ];
