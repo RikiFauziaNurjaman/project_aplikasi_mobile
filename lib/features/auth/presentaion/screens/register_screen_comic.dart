@@ -15,12 +15,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  String _errorText = '';
+  String _usernameError = '';
+  String _emailError = '';
+  String _passwordError = '';
   bool isSignedIn = false;
   bool _obscurePassword = true;
 
 
-  void _register() async{
+  void _onRegister() async{
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     String username = _usernameController.text.trim();
     String email = _emailController.text.trim();
@@ -29,21 +31,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (username.isEmpty || email.isEmpty || password.isEmpty) {
     setState(() {
-      _errorText = 'Semua field harus diisi.';
+      _usernameError = username.isEmpty ? 'Username harus diisi' : '';
+      _emailError = email.isEmpty ? 'Email harus diisi' : '';
+      _passwordError = password.isEmpty ? 'Password harus diisi' : '';
     });
     return;
   }
 
   if (email.length < 3) {
       setState(() {
-        _errorText = "Field Email minimal 3 karakter!";
+        _emailError = "Field Email minimal 3 karakter!";
+        _usernameError = '';
+        _passwordError = '';
       });
       return;
     }
 
     if (username.length < 3) {
       setState(() {
-        _errorText = "Field Username minimal 3 karakter!";
+        _usernameError = "Field Username minimal 3 karakter!";
+        _emailError = '';
+        _passwordError = '';
       });
       return;
     }
@@ -51,14 +59,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
     String? existingUsername = prefs.getString('username');
     if (existingUsername != null && existingUsername == username) {
       setState(() {
-        _errorText = 'Username sudah terdaftar! Gunakan username lain.';
+        _usernameError = 'Username sudah terdaftar! Gunakan username lain.';
+        _emailError = '';
+        _passwordError = '';
       });
       return;
     }
 
     if(!email.contains('@')){
       setState(() {
-        _errorText = 'Email harus mengandung simbol @!';
+        _emailError = 'Email harus mengandung simbol @!';
+        _usernameError = '';
+        _passwordError = '';
       });
       return;
     }
@@ -66,16 +78,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (password.length < 8 ||
         !password.contains(RegExp(r'[A-Z]')) ||
         !password.contains(RegExp(r'[a-z]')) ||
-        !password.contains(RegExp(r'[0-9]')) ||
-        !password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+        !password.contains(RegExp(r'[0-9]'))) {
       setState(() {
-        _errorText =
-            'Minimal 8 Karakter dengan Huruf Kapital, kecil, dan angka, serta simbol!';
+        _passwordError =
+            'Minimal 8 Karakter dengan Huruf Kapital, kecil, dan angka';
+        _usernameError = '';
+        _emailError = '';
       });
       return;
     } 
       setState(() {
-        _errorText = '';
+        _usernameError = '';
+        _emailError = '';
+        _passwordError = '';
       });
     
     print("*** Sign Up Berhasil ***");
@@ -92,6 +107,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       'password',
       password,
     ); // Simpan password ke SharedPreferences
+
     // Set isSignedIn false karena user baru register, belum login
     prefs.setBool('isSignedIn', false);
 
@@ -103,7 +119,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         duration: Duration(seconds: 2),
       ),
     );
-     Navigator.pushNamed(context, '/login');
+    
+    // Navigate ke login screen setelah 2 detik
+    await Future.delayed(Duration(seconds: 1));
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
   }
 
 
@@ -139,8 +160,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Brand logo / title
                 Image.asset(
                   'images/auth/logo.png',
-                  width: 600,
-                  // height: ,
+                  width: 500,
                   fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 12),
@@ -176,8 +196,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               padding: const EdgeInsets.symmetric(horizontal: 20),
                               child: TextFormField(
                                 controller: _usernameController,
-                                decoration: const InputDecoration(
-                                  labelText: 'User Name',
+                                decoration: InputDecoration(
+                                  errorText: _usernameError.isNotEmpty ? _usernameError : null,
+                                  labelText: 'Username',
                                   prefixIcon: Icon(Icons.person),
                                   border: OutlineInputBorder(
                                     borderSide: BorderSide(width: 2.0, color: Colors.grey),
@@ -194,7 +215,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               child: TextFormField(
                                 controller: _emailController,
                                 keyboardType: TextInputType.emailAddress,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
+                                  errorText: _emailError.isNotEmpty ? _emailError : null,
                                   labelText: 'Email',
                                   prefixIcon: Icon(Icons.email),
                                   border: OutlineInputBorder(
@@ -213,6 +235,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 controller: _passwordController,
                                 obscureText: _obscurePassword,
                                 decoration: InputDecoration(
+                                  errorText: _passwordError.isNotEmpty ? _passwordError : null,
                                   labelText: 'Kata sandi',
                                   prefixIcon: const Icon(Icons.lock),
                                   border: const OutlineInputBorder(
@@ -242,7 +265,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   backgroundColor: Colors.amberAccent,
                                   foregroundColor: Colors.white
                                 ),
-                                onPressed: (){} , //_onRegister,
+                                onPressed: (){
+                                  _onRegister();
+                                  },
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 10),
                                   child: Text(

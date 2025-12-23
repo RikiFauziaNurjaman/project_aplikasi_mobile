@@ -13,7 +13,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  String _errorText = '';
+  String _emailError = '';
+  String _passwordError = '';
   bool _isLogin = false;
   bool _obscurePassword = true;
 
@@ -33,14 +34,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (enteredEmail.isEmpty || enteredPassword.isEmpty) {
       setState(() {
-        _errorText = 'Nama Pengguna dan Kata Sandi harus diisi.';
+        _emailError = enteredEmail.isEmpty ? 'Email harus diisi' : '';
+        _passwordError = enteredPassword.isEmpty ? 'Password harus diisi' : '';
       });
       return;
     }
 
     if (savedEmail.isEmpty || savedPassword.isEmpty) {
       setState(() {
-        _errorText = 'Akun tidak ditemukan. Silakan daftar terlebih dahulu.';
+        _emailError = 'Akun tidak ditemukan. Silakan daftar terlebih dahulu.';
+        _passwordError = '';
       });
       return;
     }
@@ -48,9 +51,10 @@ class _LoginScreenState extends State<LoginScreen> {
     if (enteredEmail == savedEmail && enteredPassword == savedPassword) {
       setState(() {
         _isLogin = true;
-        _errorText = '';
+        _emailError = '';
+        _passwordError = '';
       });
-      await prefs.setBool('isSignedIn', true);
+      await prefs.setBool('isLogin', true);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(
@@ -67,7 +71,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     } else {
       setState(() {
-        _errorText = 'Nama Pengguna atau Kata Sandi salah.';
+        _emailError = 'Email atau Password salah.';
+        _passwordError = 'Email atau Password salah.';
       });
     }
   
@@ -77,6 +82,8 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
       ).showSnackBar(const SnackBar(content: Text('Logging in...')));
     }
+
+    
   }
   
 
@@ -130,7 +137,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: TextFormField(
                                 controller: _emailController,
                                 keyboardType: TextInputType.emailAddress,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
+                                  errorText: _emailError.isNotEmpty ? _emailError : null,
                                   labelText: 'Email',
                                   prefixIcon: Icon(Icons.email),
                                   border: OutlineInputBorder(
@@ -149,6 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 controller: _passwordController,
                                 obscureText: _obscurePassword,
                                 decoration: InputDecoration(
+                                  errorText: _passwordError.isNotEmpty ? _passwordError : null,
                                   labelText: 'Password',
                                   prefixIcon: const Icon(Icons.lock),
                                   border: const OutlineInputBorder(
@@ -178,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   backgroundColor: Colors.amberAccent,
                                   foregroundColor: Colors.white
                                 ),
-                                onPressed: (){} , //_onLogin,
+                                onPressed: _onLogin,
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 10),
                                   child: Text(
