@@ -21,24 +21,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool isSignedIn = false;
   bool _obscurePassword = true;
 
-
-  void _onRegister() async{
+  void _onRegister() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     String username = _usernameController.text.trim();
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
 
-
     if (username.isEmpty || email.isEmpty || password.isEmpty) {
-    setState(() {
-      _usernameError = username.isEmpty ? 'Username harus diisi' : '';
-      _emailError = email.isEmpty ? 'Email harus diisi' : '';
-      _passwordError = password.isEmpty ? 'Password harus diisi' : '';
-    });
-    return;
-  }
+      setState(() {
+        _usernameError = username.isEmpty ? 'Username harus diisi' : '';
+        _emailError = email.isEmpty ? 'Email harus diisi' : '';
+        _passwordError = password.isEmpty ? 'Password harus diisi' : '';
+      });
+      return;
+    }
 
-  if (email.length < 3) {
+    if (email.length < 3) {
       setState(() {
         _emailError = "Field Email minimal 3 karakter!";
         _usernameError = '';
@@ -66,7 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    if(!email.contains('@')){
+    if (!email.contains('@')) {
       setState(() {
         _emailError = 'Email harus mengandung simbol @!';
         _usernameError = '';
@@ -86,23 +84,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _emailError = '';
       });
       return;
-    } 
-      setState(() {
-        _usernameError = '';
-        _emailError = '';
-        _passwordError = '';
-      });
-    
+    }
+    setState(() {
+      _usernameError = '';
+      _emailError = '';
+      _passwordError = '';
+    });
+
     print("*** Sign Up Berhasil ***");
 
     prefs.setString(
       'username',
       username,
     ); // Simpan username ke SharedPreferences
-    prefs.setString(
-      'email',
-      email,
-    ); // Simpan email ke SharedPreferences
+    prefs.setString('email', email); // Simpan email ke SharedPreferences
     prefs.setString(
       'password',
       password,
@@ -119,15 +114,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
         duration: Duration(seconds: 2),
       ),
     );
-    
+
     // Navigate ke login screen setelah 2 detik
     await Future.delayed(Duration(seconds: 1));
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
   }
-
-
 
   @override
   void dispose() {
@@ -167,11 +160,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Container(
                   margin: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color : Colors.white,
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(10),
-                    ),
+                  ),
+
                   // color: Colors.white,
-                  
                   child: Column(
                     children: [
                       const Text(
@@ -185,7 +178,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      
+
                       // Form
                       Form(
                         // key: _formKey,
@@ -193,56 +186,86 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           children: [
                             Padding(padding: EdgeInsets.all(20)),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: TextFormField(
                                 controller: _usernameController,
                                 decoration: InputDecoration(
-                                  errorText: _usernameError.isNotEmpty ? _usernameError : null,
+                                  errorText: _usernameError.isNotEmpty
+                                      ? _usernameError
+                                      : null,
                                   labelText: 'Username',
                                   prefixIcon: Icon(Icons.person),
                                   border: OutlineInputBorder(
-                                    borderSide: BorderSide(width: 2.0, color: Colors.grey),
+                                    borderSide: BorderSide(
+                                      width: 2.0,
+                                      color: Colors.grey,
+                                    ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(width: 2.5, color: Colors.blue),
+                                    borderSide: BorderSide(
+                                      width: 2.5,
+                                      color: Colors.blue,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                             const SizedBox(height: 18),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: TextFormField(
                                 controller: _emailController,
                                 keyboardType: TextInputType.emailAddress,
                                 decoration: InputDecoration(
-                                  errorText: _emailError.isNotEmpty ? _emailError : null,
+                                  errorText: _emailError.isNotEmpty
+                                      ? _emailError
+                                      : null,
                                   labelText: 'Email',
                                   prefixIcon: Icon(Icons.email),
                                   border: OutlineInputBorder(
-                                    borderSide: BorderSide(width: 2.0, color: Colors.grey),
+                                    borderSide: BorderSide(
+                                      width: 2.0,
+                                      color: Colors.grey,
+                                    ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(width: 2.5, color: Colors.blue),
+                                    borderSide: BorderSide(
+                                      width: 2.5,
+                                      color: Colors.blue,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                             const SizedBox(height: 12),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: TextFormField(
                                 controller: _passwordController,
                                 obscureText: _obscurePassword,
                                 decoration: InputDecoration(
-                                  errorText: _passwordError.isNotEmpty ? _passwordError : null,
+                                  errorText: _passwordError.isNotEmpty
+                                      ? _passwordError
+                                      : null,
                                   labelText: 'Kata sandi',
                                   prefixIcon: const Icon(Icons.lock),
                                   border: const OutlineInputBorder(
-                                    borderSide: BorderSide(width: 2.0, color: Colors.grey),
+                                    borderSide: BorderSide(
+                                      width: 2.0,
+                                      color: Colors.grey,
+                                    ),
                                   ),
                                   focusedBorder: const OutlineInputBorder(
-                                    borderSide: BorderSide(width: 2.5, color: Colors.blue),
+                                    borderSide: BorderSide(
+                                      width: 2.5,
+                                      color: Colors.blue,
+                                    ),
                                   ),
                                   suffixIcon: IconButton(
                                     icon: Icon(
@@ -250,38 +273,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                           ? Icons.visibility
                                           : Icons.visibility_off,
                                     ),
-                                    onPressed: () =>
-                                        setState(() => _obscurePassword = !_obscurePassword),
+                                    onPressed: () => setState(
+                                      () =>
+                                          _obscurePassword = !_obscurePassword,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                             const SizedBox(height: 18),
-                      
+
                             SizedBox(
                               width: 200,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.amberAccent,
-                                  foregroundColor: Colors.white
+                                  foregroundColor: Colors.white,
                                 ),
-                                onPressed: (){
+                                onPressed: () {
                                   _onRegister();
-                                  },
+                                },
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 10),
                                   child: Text(
                                     'Register',
                                     style: TextStyle(
-                                      fontSize: 20, 
-                                      fontWeight : FontWeight.bold,
-                                      letterSpacing: 1.5, 
-                                    ), 
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.5,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                      
+
                             const SizedBox(height: 12),
                             Padding(
                               padding: const EdgeInsets.only(bottom: 12.0),
@@ -291,8 +316,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   const Text("Already have an account? "),
                                   GestureDetector(
                                     onTap: () {
-                                        Navigator.of(context).pushReplacement(
-                                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                                      Navigator.of(context).pushReplacement(
+                                        MaterialPageRoute(
+                                          builder: (_) => const LoginScreen(),
+                                        ),
                                       );
                                     },
                                     child: const Text(
@@ -300,7 +327,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       style: TextStyle(
                                         color: Color.fromRGBO(33, 150, 243, 1),
                                         fontWeight: FontWeight.w600,
-                                      ),  
+                                      ),
                                     ),
                                   ),
                                 ],
