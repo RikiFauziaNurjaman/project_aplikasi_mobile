@@ -17,7 +17,7 @@ class _SplashScreenComicState extends State<SplashScreenComic> {
 	void initState() {
 		super.initState();
 		// 1 second duration
-		_timer = Timer(const Duration(seconds: 20), _onTimerComplete);
+		_timer = Timer(const Duration(seconds: 1), _onTimerComplete);
 	}
 
 		void _onTimerComplete() {
@@ -36,40 +36,38 @@ class _SplashScreenComicState extends State<SplashScreenComic> {
 	Widget build(BuildContext context) {
 		return Scaffold(
 			backgroundColor: Colors.blue,
-			body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-				children: [
-					Row(
-					  children: [
-					    Center(
-					    	child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-					    		children: [
-					    			Image.asset(
-					    				'images/auth/logo.png',
-					    				width: 500,
-					    				fit: BoxFit.fitHeight,
-					    			),
-					    			const Text(
-					    				'COMICU',
-					    				style: TextStyle(
-					    					color: Colors.white,
-					    					fontSize: 20,
-					    					fontWeight: FontWeight.bold,
-					    				),
-					    			),
-                    const Text("Platform Pembaca Komik Digital",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                      ),
-                    ),
-					    		],
-					    	),
-					    ),
-					  ],
-					),
-			  ],
+			body: Center(
+				child: Column(
+					mainAxisAlignment: MainAxisAlignment.center,
+					crossAxisAlignment: CrossAxisAlignment.center,
+					children: [
+						Image.asset(
+							'images/auth/logo.png',
+							width: 500,
+							height: 250,
+							fit: BoxFit.cover,
+						),
+						const SizedBox(height: 16),
+						const Text(
+							'COMICU',
+							style: TextStyle(
+                fontFamily: 'Fredoka',
+								color: Colors.white,
+								fontSize: 20,
+								fontWeight: FontWeight.bold,
+							),
+						),
+						const SizedBox(height: 8),
+						const Text(
+							"Platform Pembaca Komik Digital",
+							style: TextStyle(
+                fontFamily: 'Fredoka',
+								color: Colors.white,
+								fontSize: 14,
+							),
+						),
+					],
+				),
 			),
 		);
 	}

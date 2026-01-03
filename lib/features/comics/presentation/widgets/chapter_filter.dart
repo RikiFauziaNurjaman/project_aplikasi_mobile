@@ -1,53 +1,54 @@
 import 'package:flutter/material.dart';
 
-class ChapterFilter extends StatefulWidget {
-  const ChapterFilter({super.key});
+class ChapterFilter extends StatelessWidget {
+  final List<String> ranges;
+  final int selectedIndex;
+  final Function(int) onFilterSelected;
 
-  @override
-  State<ChapterFilter> createState() => _ChapterFilterState();
-}
+  const ChapterFilter({
+    super.key,
+    required this.ranges,
+    required this.selectedIndex,
+    required this.onFilterSelected,
+  });
 
-class _ChapterFilterState extends State<ChapterFilter> {
-  final List<String> _filters = [
-    '1-30',
-    '31-60',
-    '61-90',
-    '91-120',
-    '121-150',
-    '151-180',
-    '181-210',
-  ];
-  int _selectedFilterIndex = 0;
   @override
   Widget build(BuildContext context) {
+    if (ranges.isEmpty) return const SizedBox.shrink();
+
     return Container(
       width: double.infinity,
-      height: 36,
-      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      child: ListView.builder(
+      height: 50,
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+      child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: _filters.length,
+        itemCount: ranges.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: ChoiceChip(
-              label: Text(_filters[index]),
-              labelStyle: TextStyle(
-                color: _selectedFilterIndex == index
-                    ? Colors.white
-                    : Colors.black,
+          final bool isSelected = selectedIndex == index;
+
+          return ChoiceChip(
+            label: Text(
+              ranges[index],
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.black87,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
-              selected: _selectedFilterIndex == index,
-              onSelected: (bool selected) {
-                setState(() {
-                  _selectedFilterIndex = selected ? index : 0;
-                });
-              },
-              backgroundColor: const Color(0xFFBDB2B1),
-              selectedColor: Colors.grey[300],
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                side: const BorderSide(color: Colors.transparent),
+            ),
+            selected: isSelected,
+            onSelected: (bool selected) {
+              if (selected) {
+                onFilterSelected(index);
+              }
+            },
+
+            backgroundColor: Colors.grey[200],
+            selectedColor: const Color.fromARGB(255, 126, 115, 255),
+            showCheckmark: false,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              side: BorderSide(
+                color: isSelected ? Colors.transparent : Colors.grey.shade300,
               ),
             ),
           );

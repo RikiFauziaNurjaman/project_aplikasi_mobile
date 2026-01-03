@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:project_aplikasi_mobile/models/chapter_comic.dart';
+import 'package:project_aplikasi_mobile/features/comics/presentation/screens/read_comic_screen.dart';
+import 'package:project_aplikasi_mobile/models/detail_comic.dart';
 
 class ChapterList extends StatelessWidget {
   final List<Chapter> chapters;
@@ -8,77 +9,59 @@ class ChapterList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverList(
-      delegate: SliverChildBuilderDelegate((BuildContext context, int index) {
-        final chapter = chapters[index];
-
-        final String thumbnailUrl = chapter.imageUrls.isNotEmpty
-            ? chapter.imageUrls[0]
-            : 'images/placeholder.png';
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8.0),
-
-                child: Image.asset(
-                  thumbnailUrl,
-                  width: 100,
-                  height: 70,
-                  fit: BoxFit.cover,
-
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 100,
-                      height: 70,
-                      color: Colors.grey[800],
-                      child: Icon(Icons.broken_image, color: Colors.grey[600]),
-                    );
-                  },
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final chapter = chapters[index];
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8.0),
+              border: Border.all(color: Colors.grey.shade300),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 0.0,
+              ),
+              title: Text(
+                chapter.displayName,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      chapter.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.visibility,
-                          size: 14,
-                          color: Colors.grey[500],
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          chapter.viewCount,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[800],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+              subtitle: Text(
+                chapter.date,
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
               ),
-            ],
-          ),
-        );
-      }, childCount: chapters.length),
+              trailing: const Icon(
+                Icons.arrow_forward_ios,
+                size: 14,
+                color: Colors.grey,
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ReadComicScreen(chapterSlug: chapter.slug),
+                  ),
+                );
+              },
+            ),
+          );
+        }, childCount: chapters.length),
+      ),
     );
   }
 }
