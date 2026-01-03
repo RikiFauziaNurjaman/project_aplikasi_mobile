@@ -16,6 +16,76 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late Future<ComicResponse> _recommendedComicsFuture;
 
+  Widget _buildComicCard(Comic comic) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.asset(
+            comic.coverUrl,
+            height: 140,
+            width: 100,
+            fit: BoxFit.cover,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: 100,
+          child: Text(
+            comic.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSection(String title, List<Comic> comics) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              GestureDetector(
+                onTap: () {
+                  // TODO: Navigate to view all
+                },
+                child: const Text(
+                  'view all',
+                  style: TextStyle(color: Colors.blue, fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 200,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            itemCount: comics.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: _buildComicCard(comics[index]),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   void initState() {
     super.initState();

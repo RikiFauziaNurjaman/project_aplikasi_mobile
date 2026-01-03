@@ -59,7 +59,9 @@ class _SimpleCarouselState extends State<SimpleCarousel> {
   @override
   Widget build(BuildContext context) {
     if (widget.children.isEmpty) {
-      return SizedBox(height: widget.height, child: const Center(child: Text('No slides')));
+      return SizedBox(
+        height: widget.height, 
+        child: const Center(child: Text('No slides')));
     }
 
     return Column(
@@ -71,7 +73,6 @@ class _SimpleCarouselState extends State<SimpleCarousel> {
             onPanCancel: () => _startTimer(),
             onPanEnd: (_) => _startTimer(),
             child: PageView.builder(
-              reverse: true,
               controller: _controller,
               itemCount: widget.children.length,
               onPageChanged: (index) => setState(() => _current = index),
