@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 // // import 'package:project_aplikasi_mobile/features/auth/presentaion/screens/splash_screen_comic.dart';
 // import 'package:project_aplikasi_mobile/features/comics/presentation/screens/comic_detail_screen.dart';
 import 'package:project_aplikasi_mobile/features/layouts/layout_screen.dart';
+import 'package:project_aplikasi_mobile/features/auth/presentaion/screens/splash_screen_comic.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,8 +22,8 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
 
-      home: const LayoutScreen(),
-      // home: const SplashScreenComic(),
+      // home: const LayoutScreen(),
+      home: const SplashScreenComic(),
       // home: ComicDetailScreen(comic: listComic[0]),
     );
   }

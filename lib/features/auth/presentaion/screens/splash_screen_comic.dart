@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:project_aplikasi_mobile/features/layouts/layout_screen.dart';
 import 'login_screen_comic.dart';
 
 class SplashScreenComic extends StatefulWidget {
@@ -20,10 +22,19 @@ class _SplashScreenComicState extends State<SplashScreenComic> {
 		_timer = Timer(const Duration(seconds: 1), _onTimerComplete);
 	}
 
-		void _onTimerComplete() {
-			Navigator.of(context).pushReplacement(
-				MaterialPageRoute(builder: (_) => const LoginScreen()),
-			);
+		void _onTimerComplete() async {
+			final SharedPreferences prefs = await SharedPreferences.getInstance();
+			bool isSignedIn = prefs.getBool('isSignedIn') ?? false;
+			
+			if (isSignedIn) {
+				Navigator.of(context).pushReplacement(
+					MaterialPageRoute(builder: (_) => const LayoutScreen()),
+				);
+			} else {
+				Navigator.of(context).pushReplacement(
+					MaterialPageRoute(builder: (_) => const LoginScreen()),
+				);
+			}
 		}
 
 	@override
