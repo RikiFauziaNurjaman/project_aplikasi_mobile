@@ -3,11 +3,20 @@ import 'package:project_aplikasi_mobile/features/comics/presentation/widgets/Cha
 import 'package:project_aplikasi_mobile/features/comics/presentation/widgets/chapter_filter.dart';
 import 'package:project_aplikasi_mobile/features/comics/presentation/widgets/comic_header.dart';
 import 'package:project_aplikasi_mobile/features/comics/presentation/widgets/comic_info.dart';
+import 'package:project_aplikasi_mobile/features/comics/presentation/widgets/comment_bottom_sheet.dart';
 import 'package:project_aplikasi_mobile/models/detail_comic.dart';
+import 'package:project_aplikasi_mobile/services/database_helper.dart';
+import 'package:project_aplikasi_mobile/models/favorite_model.dart';
 
 class ComicDetailScreen extends StatefulWidget {
   final ComicDetail comic;
-  const ComicDetailScreen({super.key, required this.comic});
+  final String comicSlug;
+
+  const ComicDetailScreen({
+    super.key,
+    required this.comic,
+    required this.comicSlug,
+  });
 
   @override
   State<ComicDetailScreen> createState() => _ComicDetailScreenState();
@@ -19,11 +28,112 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
   int _selectedFilterIndex = 0;
   final int _chunkSize = 50;
 
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  bool _isFavorite = false;
+
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  bool _isSearching = false;
+
   @override
   void initState() {
     super.initState();
     _generateFilterRanges();
     _updateDisplayedChapters(0);
+    _checkFavoriteStatus();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    setState(() {
+      _searchQuery = query.trim();
+      _isSearching = _searchQuery.isNotEmpty;
+    });
+
+    if (_isSearching) {
+      final filtered = widget.comic.chapters.where((chapter) {
+        final chapterTitle = chapter.title.toLowerCase();
+        final searchLower = _searchQuery.toLowerCase();
+
+        // Match exact chapter number
+        final chapterNumbers = RegExp(r'\d+').allMatches(chapterTitle);
+        for (var match in chapterNumbers) {
+          if (match.group(0) == _searchQuery) {
+            return true;
+          }
+        }
+
+        return chapterTitle.contains(searchLower);
+      }).toList();
+
+      setState(() => _displayedChapters = filtered);
+    } else {
+      _updateDisplayedChapters(_selectedFilterIndex);
+    }
+  }
+
+  Future<void> _checkFavoriteStatus() async {
+    try {
+      final isFav = await _dbHelper.isFavorite(widget.comicSlug);
+      if (mounted) setState(() => _isFavorite = isFav);
+    } catch (e) {
+      if (mounted) setState(() => _isFavorite = false);
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    try {
+      final favorite = FavoriteModel(
+        comicId: widget.comicSlug,
+        title: widget.comic.title,
+        coverUrl: widget.comic.cover,
+        type: widget.comic.type,
+        addedAt: DateTime.now().millisecondsSinceEpoch,
+      );
+
+      final newStatus = await _dbHelper.toggleFavorite(favorite);
+      if (mounted) {
+        setState(() => _isFavorite = newStatus);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  newStatus ? Icons.favorite : Icons.favorite_border,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  newStatus
+                      ? 'Ditambahkan ke favorit ❤️'
+                      : 'Dihapus dari favorit',
+                ),
+              ],
+            ),
+            backgroundColor: newStatus ? Colors.green : Colors.grey[700],
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gagal mengubah status favorit'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showComments() {
+    CommentBottomSheet.show(context, widget.comicSlug, widget.comic.title);
   }
 
   void _generateFilterRanges() {
@@ -35,22 +145,16 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
       int start = (i * _chunkSize) + 1;
       int end = ((i + 1) * _chunkSize);
       if (end > totalChapters) end = totalChapters;
-
       ranges.add('$start-$end');
     }
 
-    setState(() {
-      _filterRanges = ranges;
-    });
+    setState(() => _filterRanges = ranges);
   }
 
   void _updateDisplayedChapters(int index) {
     int start = index * _chunkSize;
     int end = start + _chunkSize;
-
-    if (end > widget.comic.chapters.length) {
-      end = widget.comic.chapters.length;
-    }
+    if (end > widget.comic.chapters.length) end = widget.comic.chapters.length;
 
     setState(() {
       _selectedFilterIndex = index;
@@ -65,18 +169,25 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
         slivers: [
           _buildSliverAppBar(context),
           SliverToBoxAdapter(child: ComicInfo(comic: widget.comic)),
-          SliverToBoxAdapter(child: const ComicHeader()),
+          SliverToBoxAdapter(
+            child: ComicHeader(
+              searchController: _searchController,
+              onSearchChanged: _onSearchChanged,
+            ),
+          ),
           SliverToBoxAdapter(
             child: ChapterFilter(
               ranges: _filterRanges,
               selectedIndex: _selectedFilterIndex,
-              onFilterSelected: (index) {
-                _updateDisplayedChapters(index);
-              },
+              onFilterSelected: _updateDisplayedChapters,
             ),
           ),
-          ChapterList(chapters: _displayedChapters),
-
+          ChapterList(
+            chapters: _displayedChapters,
+            comicId: widget.comicSlug,
+            comicTitle: widget.comic.title,
+            coverUrl: widget.comic.cover,
+          ),
           const SliverToBoxAdapter(child: SizedBox(height: 20)),
         ],
       ),
@@ -86,7 +197,10 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
   Widget _buildCircleIcon(IconData iconData, VoidCallback? onPressed) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
-      decoration: BoxDecoration(color: Colors.black, shape: BoxShape.circle),
+      decoration: const BoxDecoration(
+        color: Colors.black,
+        shape: BoxShape.circle,
+      ),
       child: IconButton(
         icon: Icon(iconData, color: Colors.white),
         onPressed: onPressed,
@@ -101,18 +215,41 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
       expandedHeight: 250.0,
       pinned: true,
       backgroundColor: const Color(0xFF1F1F1F),
-
-      leading: _buildCircleIcon(Icons.arrow_back, () {
-        Navigator.of(context).pop();
-      }),
-
+      automaticallyImplyLeading: false,
+      leading: Container(
+        margin: const EdgeInsets.all(8.0),
+        decoration: const BoxDecoration(
+          color: Colors.black,
+          shape: BoxShape.circle,
+        ),
+        child: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+          iconSize: 24.0,
+          splashRadius: 20.0,
+        ),
+      ),
       actions: [
-        _buildCircleIcon(Icons.favorite, () {}),
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
+          decoration: const BoxDecoration(
+            color: Colors.black,
+            shape: BoxShape.circle,
+          ),
+          child: IconButton(
+            icon: Icon(
+              _isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: _isFavorite ? Colors.red : Colors.white,
+            ),
+            onPressed: _toggleFavorite,
+            iconSize: 24.0,
+            splashRadius: 20.0,
+          ),
+        ),
         const SizedBox(width: 8),
-        _buildCircleIcon(Icons.chat, () {}),
+        _buildCircleIcon(Icons.chat, _showComments),
         const SizedBox(width: 12),
       ],
-
       flexibleSpace: FlexibleSpaceBar(
         background: Image.network(
           widget.comic.cover,

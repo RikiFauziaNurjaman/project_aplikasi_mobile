@@ -47,13 +47,13 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-
     String? savedEmail = prefs.getString('email');
     String? savedPassword = prefs.getString('password');
 
     if (savedEmail == null) {
       setState(() {
-        _emailError = 'Email tidak terdaftar! Silakan register terlebih dahulu.';
+        _emailError =
+            'Email tidak terdaftar! Silakan register terlebih dahulu.';
         _passwordError = '';
       });
       return;
@@ -84,9 +84,9 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     await Future.delayed(const Duration(seconds: 1));
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const LayoutScreen()),
-    );
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const LayoutScreen()));
   }
 
   @override
@@ -237,7 +237,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     onTap: () {
                                       Navigator.of(context).pushReplacement(
                                         MaterialPageRoute(
-                                          builder: (_) => const RegisterScreen(),
+                                          builder: (_) =>
+                                              const RegisterScreen(),
                                         ),
                                       );
                                     },

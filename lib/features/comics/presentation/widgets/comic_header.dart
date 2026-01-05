@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 class ComicHeader extends StatelessWidget {
-  const ComicHeader({super.key});
+  final TextEditingController? searchController;
+  final ValueChanged<String>? onSearchChanged;
+
+  const ComicHeader({super.key, this.searchController, this.onSearchChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -38,14 +41,17 @@ class ComicHeader extends StatelessWidget {
               children: [
                 Expanded(
                   child: TextField(
+                    controller: searchController,
+                    onChanged: onSearchChanged,
                     decoration: InputDecoration(
-                      hintText: 'Masukan Chapter',
+                      hintText: 'Masukan Chapter (contoh: 10)',
                       hintStyle: const TextStyle(color: Colors.white70),
                       border: InputBorder.none,
                       isDense: true,
                       contentPadding: EdgeInsets.zero,
                     ),
                     style: const TextStyle(color: Colors.white),
+                    keyboardType: TextInputType.number,
                   ),
                 ),
                 const Icon(Icons.search, color: Colors.white, size: 18),
