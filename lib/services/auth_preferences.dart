@@ -1,7 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Service untuk menyimpan dan mengambil data autentikasi user menggunakan SharedPreferences.
-/// Data yang disimpan: userId, username, email, fullName, dan status login.
 class AuthPreferences {
   static const String _keyIsLoggedIn = 'is_logged_in';
   static const String _keyUserId = 'user_id';
@@ -9,7 +7,6 @@ class AuthPreferences {
   static const String _keyEmail = 'email';
   static const String _keyFullName = 'full_name';
 
-  /// Simpan data user setelah login/signup berhasil
   static Future<void> saveUserData({
     required String userId,
     required String username,
@@ -24,13 +21,11 @@ class AuthPreferences {
     await prefs.setString(_keyFullName, fullName);
   }
 
-  /// Cek apakah user sudah login
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_keyIsLoggedIn) ?? false;
   }
 
-  /// Ambil data user yang tersimpan
   static Future<Map<String, String?>> getUserData() async {
     final prefs = await SharedPreferences.getInstance();
     return {
@@ -41,35 +36,29 @@ class AuthPreferences {
     };
   }
 
-  /// Ambil userId saja
   static Future<String?> getUserId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_keyUserId);
   }
 
-  /// Ambil username saja
   static Future<String?> getUsername() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_keyUsername);
   }
 
-  /// Ambil email saja
   static Future<String?> getEmail() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_keyEmail);
   }
 
-  /// Logout - hapus semua data user
+  // Only clear login status, keep credentials for re-login
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isSignedIn', false);
     await prefs.remove(_keyIsLoggedIn);
     await prefs.remove(_keyUserId);
-    await prefs.remove(_keyUsername);
-    await prefs.remove(_keyEmail);
-    await prefs.remove(_keyFullName);
   }
 
-  /// Hapus semua data (untuk reset)
   static Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();

@@ -1,12 +1,15 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:project_aplikasi_mobile/components/navbar/navbar.dart';
 import 'package:project_aplikasi_mobile/features/dashboard/presentation/screens/home_screen.dart';
 import 'package:project_aplikasi_mobile/features/dashboard/presentation/widgets/history_card.dart';
-// import 'package:project_aplikasi_mobile/features/dashboard/presentation/widgets/history_card.dart';
-// import 'package:project_aplikasi_mobile/features/favorite/presentation/screens/favorite_screen.dart';
-// import 'package:project_aplikasi_mobile/features/profile/presentation/screens/profile_screen.dart';
+import 'package:project_aplikasi_mobile/features/favorite/presentation/screens/favorite_screen.dart';
+import 'package:project_aplikasi_mobile/features/profile/presentation/screens/profile_screen.dart';
 import 'package:project_aplikasi_mobile/features/trending/presentation/screens/trending_screen.dart';
+import 'package:project_aplikasi_mobile/features/comics/presentation/screens/read_comic_screen.dart';
+import 'package:project_aplikasi_mobile/services/database_helper.dart';
+import 'package:project_aplikasi_mobile/models/history_model.dart';
 
 class LayoutScreen extends StatefulWidget {
   const LayoutScreen({super.key});
@@ -22,23 +25,40 @@ class _LayoutScreenState extends State<LayoutScreen> {
   late List<Widget> _widgetOptions;
   bool _isHistoryCardVisible = true;
 
+  // History data
+  HistoryModel? _lastHistory;
+
   @override
   void initState() {
     super.initState();
-    // 1. Buat ScrollController
     _scrollController = ScrollController();
     _scrollController.addListener(_scrollListener);
 
     _widgetOptions = <Widget>[
       HomeScreen(scrollController: _scrollController),
       TrendingPage(scrollController: _scrollController),
-      // FavoritesPage(
-      //   scrollController: _scrollController,
-      // ), // Asumsi FavoritesPage juga bisa di-scroll
-      // ProfilePage(
-      //   scrollController: _scrollController,
-      // ), // Asumsi ProfilePage juga bisa di-scroll
+      const FavoritesPage(),
+      const ProfilePage(),
     ];
+
+    _loadLastHistory();
+  }
+
+  Future<void> _loadLastHistory() async {
+    // Skip database on web
+    if (kIsWeb) return;
+
+    try {
+      final dbHelper = DatabaseHelper.instance;
+      final history = await dbHelper.getAllHistory();
+      if (mounted && history.isNotEmpty) {
+        setState(() {
+          _lastHistory = history.first;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading history: $e');
+    }
   }
 
   @override
@@ -65,6 +85,28 @@ class _LayoutScreenState extends State<LayoutScreen> {
     setState(() {
       _selectedIndex = index;
     });
+
+    // Refresh history saat kembali ke home atau trending
+    if (index == 0 || index == 1) {
+      _loadLastHistory();
+    }
+  }
+
+  void _onHistoryCardTap() {
+    if (_lastHistory != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ReadComicScreen(
+            chapterSlug: _lastHistory!.lastChapterId ?? '',
+            comicId: _lastHistory!.comicId,
+            comicTitle: _lastHistory!.title,
+            coverUrl: _lastHistory!.coverUrl,
+            chapterNumber: _lastHistory!.lastChapterNumber,
+          ),
+        ),
+      ).then((_) => _loadLastHistory());
+    }
   }
 
   @override
@@ -74,7 +116,8 @@ class _LayoutScreenState extends State<LayoutScreen> {
         children: [
           _widgetOptions.elementAt(_selectedIndex),
 
-          if (_selectedIndex != 3)
+          // Hanya tampilkan HistoryCard di Home dan Trending, dan jika ada history
+          if (_selectedIndex < 2 && _lastHistory != null)
             AnimatedPositioned(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
@@ -82,12 +125,10 @@ class _LayoutScreenState extends State<LayoutScreen> {
               left: 0,
               right: 0,
               child: HistoryCard(
-                imageUrl: "",
-                title: "",
-                chapter: "Ch. 143",
-                onTap: () {
-                  /* Navigasi ke halaman baca */
-                },
+                imageUrl: _lastHistory!.coverUrl,
+                title: _lastHistory!.title,
+                chapter: _lastHistory!.lastChapterNumber ?? 'Lanjutkan membaca',
+                onTap: _onHistoryCardTap,
               ),
             ),
         ],

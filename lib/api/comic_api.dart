@@ -84,4 +84,30 @@ class ComicApi {
     }
     return null;
   }
+
+  /// Search comics by query
+  Future<ComicResponse> searchComics(String query) async {
+    try {
+      final encodedQuery = Uri.encodeComponent(query);
+      final uri = Uri.parse('$baseUrl/search/$encodedQuery');
+
+      print('SEARCH REQUEST => $uri');
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final jsonBody = jsonDecode(response.body);
+
+        if (jsonBody['success'] == true) {
+          return ComicResponse.fromJson(jsonBody);
+        } else {
+          throw Exception('Search failed: success is false');
+        }
+      } else {
+        throw Exception('Server Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('ERROR SEARCH => $e');
+      rethrow;
+    }
+  }
 }

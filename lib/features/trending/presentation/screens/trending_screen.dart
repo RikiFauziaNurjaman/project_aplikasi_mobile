@@ -4,6 +4,7 @@ import 'package:project_aplikasi_mobile/features/trending/presentation/widgets/c
 import 'package:project_aplikasi_mobile/components/searchbar/searchbar.dart'
     as CustomSearchBar;
 import 'package:project_aplikasi_mobile/models/list_comic.dart';
+import 'package:project_aplikasi_mobile/features/dashboard/presentation/screens/search_results_screen.dart';
 
 class TrendingPage extends StatefulWidget {
   final ScrollController scrollController;
@@ -34,7 +35,17 @@ class _TrendingPageState extends State<TrendingPage> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: CustomSearchBar.SearchBar(),
+              child: CustomSearchBar.SearchBar(
+                onSubmitted: (query) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          SearchResultsScreen(initialQuery: query),
+                    ),
+                  );
+                },
+              ),
             ),
 
             const Padding(

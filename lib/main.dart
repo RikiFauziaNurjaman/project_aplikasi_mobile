@@ -1,10 +1,20 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-// import 'package:project_aplikasi_mobile/data/comic_data.dart';
-// // import 'package:project_aplikasi_mobile/features/auth/presentaion/screens/splash_screen_comic.dart';
-// import 'package:project_aplikasi_mobile/features/comics/presentation/screens/comic_detail_screen.dart';
+import 'package:project_aplikasi_mobile/features/auth/presentaion/screens/splash_screen_comic.dart';
+import 'package:project_aplikasi_mobile/features/auth/presentaion/screens/login_screen_comic.dart';
+import 'package:project_aplikasi_mobile/features/auth/presentaion/screens/register_screen_comic.dart';
 import 'package:project_aplikasi_mobile/features/layouts/layout_screen.dart';
 
-void main() {
+// Conditional import for database initialization
+import 'package:project_aplikasi_mobile/services/database_init_stub.dart'
+    if (dart.library.io) 'package:project_aplikasi_mobile/services/database_init_native.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize database for desktop platforms (not web)
+  await initializeDatabase();
+
   runApp(const MyApp());
 }
 
@@ -21,10 +31,15 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
 
-      home: const LayoutScreen(),
+      // Start with SplashScreen yang akan cek login status
+      home: const SplashScreenComic(),
 
-      // home: const SplashScreenComic(),
-      // home: ComicDetailScreen(comic: listComic[0]),
+      // Named routes untuk navigasi
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
+        '/home': (context) => const LayoutScreen(),
+      },
     );
   }
 }

@@ -25,11 +25,6 @@ class _ComicDetailLoaderState extends State<ComicDetailLoader> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: const BackButton(color: Colors.black),
-      ),
       body: FutureBuilder<ComicDetail?>(
         future: _detailFuture,
         builder: (context, snapshot) {
@@ -40,7 +35,10 @@ class _ComicDetailLoaderState extends State<ComicDetailLoader> {
           } else if (!snapshot.hasData || snapshot.data == null) {
             return const Center(child: Text("Detail komik tidak ditemukan"));
           } else {
-            return ComicDetailScreen(comic: snapshot.data!);
+            return ComicDetailScreen(
+              comic: snapshot.data!,
+              comicSlug: widget.slug,
+            );
           }
         },
       ),

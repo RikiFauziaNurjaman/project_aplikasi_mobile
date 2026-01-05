@@ -3,9 +3,8 @@ import 'package:path/path.dart';
 import 'package:project_aplikasi_mobile/models/history_model.dart';
 import 'package:project_aplikasi_mobile/models/favorite_model.dart';
 import 'package:project_aplikasi_mobile/models/chapter_bookmark_model.dart';
+import 'package:project_aplikasi_mobile/models/comment_model.dart';
 
-/// Singleton Database Helper untuk SQLite
-/// Mengelola 3 tabel: history, favorites, chapter_bookmarks
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
@@ -22,11 +21,15 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    return await openDatabase(
+      path,
+      version: 2,
+      onCreate: _createDB,
+      onUpgrade: _upgradeDB,
+    );
   }
 
   Future<void> _createDB(Database db, int version) async {
-    // Tabel History - comic_id sebagai PRIMARY KEY
     await db.execute('''
       CREATE TABLE history (
         comic_id TEXT PRIMARY KEY,
@@ -39,7 +42,6 @@ class DatabaseHelper {
       )
     ''');
 
-    // Tabel Favorites - comic_id sebagai UNIQUE
     await db.execute('''
       CREATE TABLE favorites (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,7 +53,6 @@ class DatabaseHelper {
       )
     ''');
 
-    // Tabel Chapter Bookmarks - chapter_id sebagai UNIQUE
     await db.execute('''
       CREATE TABLE chapter_bookmarks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,16 +63,36 @@ class DatabaseHelper {
         added_at INTEGER
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE comments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        comic_id TEXT,
+        username TEXT,
+        comment TEXT,
+        created_at INTEGER
+      )
+    ''');
   }
 
-  // ============== HISTORY OPERATIONS ==============
+  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS comments (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          comic_id TEXT,
+          username TEXT,
+          comment TEXT,
+          created_at INTEGER
+        )
+      ''');
+    }
+  }
 
-  /// Insert atau Update history (UPSERT)
-  /// Jika comic_id sudah ada, lakukan UPDATE
+  // HISTORY
+
   Future<int> upsertHistory(HistoryModel history) async {
     final db = await database;
-
-    // Cek apakah comic sudah ada di history
     final existing = await db.query(
       'history',
       where: 'comic_id = ?',
@@ -79,7 +100,6 @@ class DatabaseHelper {
     );
 
     if (existing.isNotEmpty) {
-      // UPDATE - tambah total chapters read
       final oldHistory = HistoryModel.fromMap(existing.first);
       final updatedHistory = HistoryModel(
         comicId: history.comicId,
@@ -98,7 +118,6 @@ class DatabaseHelper {
         whereArgs: [history.comicId],
       );
     } else {
-      // INSERT baru
       final newHistory = HistoryModel(
         comicId: history.comicId,
         title: history.title,
@@ -112,14 +131,12 @@ class DatabaseHelper {
     }
   }
 
-  /// Ambil semua history, urut berdasarkan waktu terakhir dibaca
   Future<List<HistoryModel>> getAllHistory() async {
     final db = await database;
     final result = await db.query('history', orderBy: 'last_read_at DESC');
     return result.map((map) => HistoryModel.fromMap(map)).toList();
   }
 
-  /// Hapus history berdasarkan comic_id
   Future<int> deleteHistory(String comicId) async {
     final db = await database;
     return await db.delete(
@@ -129,15 +146,13 @@ class DatabaseHelper {
     );
   }
 
-  /// Hapus semua history
   Future<int> clearAllHistory() async {
     final db = await database;
     return await db.delete('history');
   }
 
-  // ============== FAVORITES OPERATIONS ==============
+  // FAVORITES
 
-  /// Tambah komik ke favorites
   Future<int> addFavorite(FavoriteModel favorite) async {
     final db = await database;
     return await db.insert(
@@ -147,7 +162,6 @@ class DatabaseHelper {
     );
   }
 
-  /// Hapus komik dari favorites
   Future<int> removeFavorite(String comicId) async {
     final db = await database;
     return await db.delete(
@@ -157,7 +171,6 @@ class DatabaseHelper {
     );
   }
 
-  /// Cek apakah komik ada di favorites
   Future<bool> isFavorite(String comicId) async {
     final db = await database;
     final result = await db.query(
@@ -168,7 +181,6 @@ class DatabaseHelper {
     return result.isNotEmpty;
   }
 
-  /// Toggle favorite status
   Future<bool> toggleFavorite(FavoriteModel favorite) async {
     final isFav = await isFavorite(favorite.comicId);
     if (isFav) {
@@ -180,16 +192,14 @@ class DatabaseHelper {
     }
   }
 
-  /// Ambil semua favorites
   Future<List<FavoriteModel>> getAllFavorites() async {
     final db = await database;
     final result = await db.query('favorites', orderBy: 'added_at DESC');
     return result.map((map) => FavoriteModel.fromMap(map)).toList();
   }
 
-  // ============== CHAPTER BOOKMARKS OPERATIONS ==============
+  // CHAPTER BOOKMARKS
 
-  /// Tambah chapter ke bookmarks
   Future<int> addChapterBookmark(ChapterBookmarkModel bookmark) async {
     final db = await database;
     return await db.insert(
@@ -199,7 +209,6 @@ class DatabaseHelper {
     );
   }
 
-  /// Hapus chapter dari bookmarks
   Future<int> removeChapterBookmark(String chapterId) async {
     final db = await database;
     return await db.delete(
@@ -209,7 +218,6 @@ class DatabaseHelper {
     );
   }
 
-  /// Cek apakah chapter ada di bookmarks
   Future<bool> isChapterBookmarked(String chapterId) async {
     final db = await database;
     final result = await db.query(
@@ -220,7 +228,6 @@ class DatabaseHelper {
     return result.isNotEmpty;
   }
 
-  /// Ambil semua chapter bookmarks
   Future<List<ChapterBookmarkModel>> getAllChapterBookmarks() async {
     final db = await database;
     final result = await db.query(
@@ -230,7 +237,6 @@ class DatabaseHelper {
     return result.map((map) => ChapterBookmarkModel.fromMap(map)).toList();
   }
 
-  /// Ambil chapter bookmarks berdasarkan comic_id
   Future<List<ChapterBookmarkModel>> getChapterBookmarksByComic(
     String comicId,
   ) async {
@@ -244,9 +250,47 @@ class DatabaseHelper {
     return result.map((map) => ChapterBookmarkModel.fromMap(map)).toList();
   }
 
-  // ============== DATABASE MANAGEMENT ==============
+  // COMMENTS
 
-  /// Tutup koneksi database
+  Future<int> addComment(CommentModel comment) async {
+    final db = await database;
+    return await db.insert('comments', comment.toMap());
+  }
+
+  Future<List<CommentModel>> getCommentsByComic(String comicId) async {
+    final db = await database;
+    final result = await db.query(
+      'comments',
+      where: 'comic_id = ?',
+      whereArgs: [comicId],
+      orderBy: 'created_at DESC',
+    );
+    return result.map((map) => CommentModel.fromMap(map)).toList();
+  }
+
+  Future<int> deleteComment(int commentId) async {
+    final db = await database;
+    return await db.delete('comments', where: 'id = ?', whereArgs: [commentId]);
+  }
+
+  Future<int> deleteAllCommentsByComic(String comicId) async {
+    final db = await database;
+    return await db.delete(
+      'comments',
+      where: 'comic_id = ?',
+      whereArgs: [comicId],
+    );
+  }
+
+  Future<int> getCommentCount(String comicId) async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM comments WHERE comic_id = ?',
+      [comicId],
+    );
+    return result.first['count'] as int? ?? 0;
+  }
+
   Future<void> close() async {
     final db = await database;
     db.close();

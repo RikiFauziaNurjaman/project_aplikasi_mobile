@@ -4,8 +4,17 @@ import 'package:project_aplikasi_mobile/models/detail_comic.dart';
 
 class ChapterList extends StatelessWidget {
   final List<Chapter> chapters;
+  final String comicId;
+  final String comicTitle;
+  final String coverUrl;
 
-  const ChapterList({super.key, required this.chapters});
+  const ChapterList({
+    super.key,
+    required this.chapters,
+    required this.comicId,
+    required this.comicTitle,
+    required this.coverUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -53,8 +62,13 @@ class ChapterList extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        ReadComicScreen(chapterSlug: chapter.slug),
+                    builder: (context) => ReadComicScreen(
+                      chapterSlug: chapter.slug,
+                      comicId: comicId,
+                      comicTitle: comicTitle,
+                      coverUrl: coverUrl,
+                      chapterNumber: chapter.displayName,
+                    ),
                   ),
                 );
               },
