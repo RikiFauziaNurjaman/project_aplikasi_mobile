@@ -54,7 +54,10 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Text(
                 title,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               GestureDetector(
                 onTap: () {
@@ -89,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _recommendedComicsFuture = _comicApi.getComics('/recommen');
+    _recommendedComicsFuture = _comicApi.getComics('/recomen');
   }
 
   @override
