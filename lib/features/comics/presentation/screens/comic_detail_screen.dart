@@ -24,6 +24,7 @@ class ComicDetailScreen extends StatefulWidget {
 
 class _ComicDetailScreenState extends State<ComicDetailScreen> {
   List<Chapter> _displayedChapters = [];
+  List<Chapter> _sortedChapters = []; // Chapters sorted from oldest to newest
   List<String> _filterRanges = [];
   int _selectedFilterIndex = 0;
   final int _chunkSize = 50;
@@ -38,6 +39,8 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
   @override
   void initState() {
     super.initState();
+    // Reverse chapters so chapter 1 is first (API returns newest first)
+    _sortedChapters = widget.comic.chapters.reversed.toList();
     _generateFilterRanges();
     _updateDisplayedChapters(0);
     _checkFavoriteStatus();
@@ -56,19 +59,27 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
     });
 
     if (_isSearching) {
-      final filtered = widget.comic.chapters.where((chapter) {
-        final chapterTitle = chapter.title.toLowerCase();
-        final searchLower = _searchQuery.toLowerCase();
+      final searchLower = _searchQuery.toLowerCase();
 
-        // Match exact chapter number
-        final chapterNumbers = RegExp(r'\d+').allMatches(chapterTitle);
-        for (var match in chapterNumbers) {
+      final filtered = _sortedChapters.where((chapter) {
+        final title = chapter.title.toLowerCase();
+        final slug = chapter.slug.toLowerCase();
+        final displayName = chapter.displayName.toLowerCase();
+
+        if (title.contains(searchLower) ||
+            slug.contains(searchLower) ||
+            displayName.contains(searchLower)) {
+          return true;
+        }
+
+        final numbersInSlug = RegExp(r'\d+').allMatches(slug);
+        for (var match in numbersInSlug) {
           if (match.group(0) == _searchQuery) {
             return true;
           }
         }
 
-        return chapterTitle.contains(searchLower);
+        return false;
       }).toList();
 
       setState(() => _displayedChapters = filtered);
@@ -137,7 +148,7 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
   }
 
   void _generateFilterRanges() {
-    int totalChapters = widget.comic.chapters.length;
+    int totalChapters = _sortedChapters.length;
     int chunks = (totalChapters / _chunkSize).ceil();
 
     List<String> ranges = [];
@@ -154,11 +165,11 @@ class _ComicDetailScreenState extends State<ComicDetailScreen> {
   void _updateDisplayedChapters(int index) {
     int start = index * _chunkSize;
     int end = start + _chunkSize;
-    if (end > widget.comic.chapters.length) end = widget.comic.chapters.length;
+    if (end > _sortedChapters.length) end = _sortedChapters.length;
 
     setState(() {
       _selectedFilterIndex = index;
-      _displayedChapters = widget.comic.chapters.sublist(start, end);
+      _displayedChapters = _sortedChapters.sublist(start, end);
     });
   }
 
