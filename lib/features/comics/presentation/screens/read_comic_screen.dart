@@ -41,6 +41,7 @@ class _ReadComicScreenState extends State<ReadComicScreen> {
 
   bool _isFavorite = false;
   bool _isAutoPlaying = false;
+  bool _isFullscreen = false;
   Timer? _autoPlayTimer;
 
   @override
@@ -57,6 +58,11 @@ class _ReadComicScreenState extends State<ReadComicScreen> {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _autoPlayTimer?.cancel();
+    // Reset system UI mode when leaving screen
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
     super.dispose();
   }
 
@@ -297,14 +303,20 @@ class _ReadComicScreenState extends State<ReadComicScreen> {
 
   /// Toggle fullscreen mode
   void _toggleFullscreen() {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-
-    // Reset after 10 seconds or when leaving
-    Future.delayed(const Duration(seconds: 10), () {
-      if (mounted) {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      }
+    setState(() {
+      _isFullscreen = !_isFullscreen;
     });
+
+    if (_isFullscreen) {
+      // Enter fullscreen - hide system UI
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    } else {
+      // Exit fullscreen - show system UI normally
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: SystemUiOverlay.values,
+      );
+    }
   }
 
   /// Navigate to different chapter
@@ -439,8 +451,18 @@ class _ReadComicScreenState extends State<ReadComicScreen> {
   }
 
   Widget _buildHeader() {
-    // Extract chapter number from title or use chapterNumber
-    String chapterDisplay = widget.chapterNumber ?? '';
+    // Extract only the chapter number
+    String chapterDisplay = '';
+
+    // Try to extract number from chapterNumber first
+    if (widget.chapterNumber != null && widget.chapterNumber!.isNotEmpty) {
+      final match = RegExp(r'(\d+)').firstMatch(widget.chapterNumber!);
+      if (match != null) {
+        chapterDisplay = match.group(1)!;
+      }
+    }
+
+    // If still empty, try from title
     if (chapterDisplay.isEmpty && _chapterData?.title != null) {
       final match = RegExp(r'(\d+)').firstMatch(_chapterData!.title);
       if (match != null) {
@@ -496,13 +518,33 @@ class _ReadComicScreenState extends State<ReadComicScreen> {
 
             const Spacer(),
 
-            // Previous Page Button
-            _buildCircleButton(icon: Icons.chevron_left, onTap: _previousPage),
+            // Previous Chapter Button
+            _buildCircleButton(
+              icon: Icons.chevron_left,
+              iconColor: _chapterData?.prevSlug != null
+                  ? Colors.white
+                  : Colors.white38,
+              onTap: () {
+                if (_chapterData?.prevSlug != null) {
+                  _navigateToChapter(_chapterData!.prevSlug!);
+                }
+              },
+            ),
 
             const SizedBox(width: 8),
 
-            // Next Page Button
-            _buildCircleButton(icon: Icons.chevron_right, onTap: _nextPage),
+            // Next Chapter Button
+            _buildCircleButton(
+              icon: Icons.chevron_right,
+              iconColor: _chapterData?.nextSlug != null
+                  ? Colors.white
+                  : Colors.white38,
+              onTap: () {
+                if (_chapterData?.nextSlug != null) {
+                  _navigateToChapter(_chapterData!.nextSlug!);
+                }
+              },
+            ),
 
             const SizedBox(width: 8),
 
