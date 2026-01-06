@@ -33,19 +33,16 @@ class _TrendingPageState extends State<TrendingPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: CustomSearchBar.SearchBar(
-                onSubmitted: (query) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          SearchResultsScreen(initialQuery: query),
-                    ),
-                  );
-                },
-              ),
+            CustomSearchBar.SearchBar(
+              onSubmitted: (query) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        SearchResultsScreen(initialQuery: query),
+                  ),
+                );
+              },
             ),
 
             const Padding(
