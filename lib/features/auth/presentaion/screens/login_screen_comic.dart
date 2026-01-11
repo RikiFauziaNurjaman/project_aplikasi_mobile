@@ -59,6 +59,14 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    if (email != savedEmail) {
+      setState(() {
+        _emailError = 'Email tidak sesuai dengan akun terdaftar!';
+        _passwordError = '';
+      });
+      return;
+    }
+
     if (password != savedPassword) {
       setState(() {
         _passwordError = 'Password salah!';
@@ -67,14 +75,10 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    setState(() {
-      _emailError = '';
-      _passwordError = '';
-    });
-
     print("*** Login Berhasil ***");
     prefs.setBool('isSignedIn', true);
-
+    prefs.setBool('is_logged_in', true);
+    
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Login berhasil!'),
@@ -119,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         'COMICU',
                         style: TextStyle(
                           fontFamily: 'Fredoka',
-                          fontSize: 65,
+                          fontSize: 60,
                           fontWeight: FontWeight.bold,
                           color: Colors.indigo,
                           letterSpacing: 1.2,

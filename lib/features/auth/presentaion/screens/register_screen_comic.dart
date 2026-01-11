@@ -130,15 +130,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  // void _onRegister() {
-  //   if (_formKey.currentState?.validate() ?? false) {
-  //     // TODO: wire real auth. For now just pop or show a snackbar.
-  //     ScaffoldMessenger.of(
-  //       context,
-  //     ).showSnackBar(const SnackBar(content: Text('Logging in...')));
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -171,7 +162,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         'COMICU',
                         style: TextStyle(
                           fontFamily: 'Fredoka',
-                          fontSize: 65,
+                          fontSize: 60,
                           fontWeight: FontWeight.bold,
                           color: Colors.indigo,
                           letterSpacing: 1.2,
