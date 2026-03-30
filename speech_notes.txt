@@ -1,0 +1,542 @@
+===============================================================================
+              CATATAN SPEECH - APLIKASI KOMIK FLUTTER
+===============================================================================
+
+Catatan ini disusun untuk membantu Anda menjawab pertanyaan 
+KENAPA, BAGAIMANA, dan DARIMANA terkait implementasi aplikasi.
+
+===============================================================================
+                          DAFTAR ISI
+===============================================================================
+1. Penggunaan API
+2. Penggunaan SQL (SQLite)
+3. Halaman Detail Comic
+4. Bottom Bar (Navigasi Bawah)
+5. Halaman Membaca Komik
+6. Halaman Trending
+7. Halaman Pencarian
+
+===============================================================================
+              1. PENGGUNAAN API
+===============================================================================
+File: lib/api/comic_api.dart
+
+KENAPA menggunakan API?
+- Untuk mengambil data komik dari server eksternal secara real-time
+- Agar data selalu up-to-date tanpa perlu menyimpan semua komik di perangkat
+- Server menyediakan endpoint untuk berbagai kebutuhan
+
+BAGAIMANA cara kerjanya?
+
+  1. Import package HTTP
+     import 'package:http/http.dart' as http;
+     import 'dart:convert';
+
+  2. Definisikan base URL
+     final String baseUrl = "https://www.sankavollerei.com/comic/bacakomik";
+
+  3. Buat request GET ke endpoint
+     final response = await http.get(uri);
+
+  4. Parse JSON response
+     final jsonBody = jsonDecode(response.body);
+
+PACKAGE YANG DIPAKAI:
+- http           : Library untuk melakukan HTTP request (GET, POST, dll)
+- dart:convert   : Untuk mengkonversi JSON string menjadi Map Dart
+
+4 ENDPOINT YANG TERSEDIA:
++----------------------+-------------------+---------------------------------------+
+| Method               | Endpoint          | Fungsi                                |
++----------------------+-------------------+---------------------------------------+
+| getComics(endpoint)  | /top, /latest     | Mengambil daftar komik dengan page    |
+| getComicDetail(slug) | /detail/{slug}    | Mengambil detail komik                |
+| getChapterImages()   | /chapter/{slug}   | Mengambil gambar chapter              |
+| searchComics(query)  | /search/{query}   | Mencari komik                         |
++----------------------+-------------------+---------------------------------------+
+
+CONTOH LOGIKA:
+
+  Future<ComicResponse> getComics(String endpoint, {int page = 1}) async {
+    // 1. Buat URI dengan query parameter page
+    final uri = Uri.parse('$baseUrl$endpoint')
+        .replace(queryParameters: {'page': page.toString()});
+    
+    // 2. Kirim request
+    final response = await http.get(uri);
+    
+    // 3. Cek status code
+    if (response.statusCode == 200) {
+      // 4. Parse dan return data
+      return ComicResponse.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Server Error');
+    }
+  }
+
+DARIMANA datanya?
+- Data berasal dari REST API: https://www.sankavollerei.com/comic/bacakomik
+- Response dalam format JSON yang di-parse menggunakan model class
+
+===============================================================================
+              2. PENGGUNAAN SQL (SQLite)
+===============================================================================
+File: lib/services/database_helper.dart
+
+KENAPA menggunakan SQLite?
+- Untuk menyimpan data LOKAL di perangkat pengguna
+- Data yang disimpan: History, Favorites, Bookmark Chapter, Comments
+- Agar pengguna bisa melihat riwayat bacaan tanpa internet
+
+BAGAIMANA cara kerjanya?
+
+  // 1. Import package sqflite
+  import 'package:sqflite/sqflite.dart';
+  import 'package:path/path.dart';
+
+  // 2. Buat singleton instance
+  static final DatabaseHelper instance = DatabaseHelper._init();
+  static Database? _database;
+
+  // 3. Inisialisasi database
+  Future<Database> _initDB(String filePath) async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, filePath);
+    
+    return await openDatabase(
+      path,
+      version: 2,
+      onCreate: _createDB,
+    );
+  }
+
+PACKAGE YANG DIPAKAI:
+- sqflite  : Library SQLite untuk Flutter
+- path     : Untuk menggabungkan path file database
+
+4 TABEL YANG DIBUAT:
+
+TABEL 1: history (Riwayat Baca)
+  - comic_id TEXT PRIMARY KEY
+  - title TEXT
+  - cover_url TEXT
+  - last_chapter_id TEXT
+  - last_chapter_number TEXT
+  - last_read_at INTEGER
+  - total_chapters_read INTEGER
+  Fungsi: Menyimpan komik yang sudah dibaca
+
+TABEL 2: favorites (Favorit)
+  - id INTEGER PRIMARY KEY AUTOINCREMENT
+  - comic_id TEXT UNIQUE
+  - title TEXT
+  - cover_url TEXT
+  - type TEXT
+  - added_at INTEGER
+  Fungsi: Menyimpan komik yang ditandai favorit
+
+TABEL 3: chapter_bookmarks (Bookmark Chapter)
+  - id INTEGER PRIMARY KEY AUTOINCREMENT
+  - comic_id TEXT
+  - chapter_id TEXT UNIQUE
+  - chapter_title TEXT
+  - chapter_number TEXT
+  - added_at INTEGER
+  Fungsi: Menyimpan chapter yang di-bookmark
+
+TABEL 4: comments (Komentar)
+  - id INTEGER PRIMARY KEY AUTOINCREMENT
+  - comic_id TEXT
+  - username TEXT
+  - comment TEXT
+  - created_at INTEGER
+  Fungsi: Menyimpan komentar pengguna
+
+OPERASI CRUD:
++----------+---------------------------+-------------------------+
+| Operasi  | Method                    | Penjelasan              |
++----------+---------------------------+-------------------------+
+| CREATE   | addFavorite()             | Menambah data baru      |
+|          | addChapterBookmark()      |                         |
+|          | addComment()              |                         |
++----------+---------------------------+-------------------------+
+| READ     | getAllHistory()           | Mengambil data          |
+|          | getAllFavorites()         |                         |
+|          | isFavorite()              |                         |
++----------+---------------------------+-------------------------+
+| UPDATE   | upsertHistory()           | Memperbarui data        |
+|          | toggleFavorite()          |                         |
++----------+---------------------------+-------------------------+
+| DELETE   | deleteHistory()           | Menghapus data          |
+|          | removeFavorite()          |                         |
++----------+---------------------------+-------------------------+
+
+===============================================================================
+              3. HALAMAN DETAIL COMIC
+===============================================================================
+File: lib/features/comics/presentation/screens/comic_detail_screen.dart
+
+KENAPA ada halaman ini?
+- Menampilkan informasi lengkap tentang komik (sinopsis, genre, author)
+- Menampilkan daftar chapter yang tersedia
+- Memungkinkan pengguna menandai sebagai favorit
+
+STRUKTUR HALAMAN:
++----------------------------------+
+|  SliverAppBar (Cover Image)      | <- Gambar cover + tombol Back, Favorite, Chat
++----------------------------------+
+|  ComicInfo Widget                | <- Info: title, type, author, sinopsis
++----------------------------------+
+|  ComicHeader + Search            | <- Header chapter + field pencarian
++----------------------------------+
+|  ChapterFilter                   | <- Filter range: 1-50, 51-100, dst
++----------------------------------+
+|  ChapterList (Sliver)            | <- Daftar chapter
++----------------------------------+
+
+WIDGET YANG DIPAKAI:
++--------------------+-----------------------------+---------------------------+
+| Widget             | Fungsi                      | Kenapa dipakai?           |
++--------------------+-----------------------------+---------------------------+
+| CustomScrollView   | Container scrollable        | Gabungkan Sliver widgets  |
+| SliverAppBar       | AppBar yang bisa collapse   | Cover mengecil saat scroll|
+| SliverToBoxAdapter | Wrapper untuk Box widget    | Widget biasa masuk Sliver |
+| FlexibleSpaceBar   | Background SliverAppBar     | Cover dengan parallax     |
++--------------------+-----------------------------+---------------------------+
+
+FITUR UTAMA:
+
+A. Toggle Favorite
+   - Cek status favorite dari SQLite
+   - Toggle: jika sudah favorite -> hapus, jika belum -> tambah
+   - Update UI dengan setState()
+
+B. Pencarian Chapter
+   - Filter chapter berdasarkan nama/nomor
+   - Realtime search saat user mengetik
+
+C. Filter Range Chapter
+   - Bagi chapter menjadi chunk 50-an
+   - Contoh: 1-50, 51-100, 101-150
+   - User pilih range untuk navigasi cepat
+
+===============================================================================
+              4. BOTTOM BAR (NAVIGASI BAWAH)
+===============================================================================
+File: lib/features/layouts/layout_screen.dart
+      lib/components/navbar/navbar.dart
+
+KENAPA menggunakan Bottom Navigation?
+- Standar UI mobile untuk navigasi utama
+- Pengguna mudah berpindah antar fitur dengan satu tap
+- Konsisten dengan design pattern aplikasi modern
+
+STRUKTUR:
+
+  Scaffold(
+    body: Stack(
+      children: [
+        _widgetOptions.elementAt(_selectedIndex),  // Halaman aktif
+        AnimatedPositioned(                         // History Card
+          bottom: _isHistoryCardVisible ? 0 : -100,
+          child: HistoryCard(...),
+        ),
+      ],
+    ),
+    bottomNavigationBar: Navbar(...),
+  )
+
+DAFTAR HALAMAN:
+  Index 0: HomeScreen       (Beranda)
+  Index 1: TrendingPage     (Trending)
+  Index 2: FavoritesPage    (Favorit)
+  Index 3: ProfilePage      (Profil)
+
+PACKAGE YANG DIPAKAI:
+- google_nav_bar : Package untuk bottom navigation modern dengan animasi
+
+KONFIGURASI GNAV:
+  GNav(
+    backgroundColor: Color.fromARGB(255, 100, 83, 233),
+    color: Colors.white,
+    activeColor: Colors.white,
+    tabBackgroundColor: Color.fromARGB(255, 65, 47, 124),
+    gap: 8,
+    padding: EdgeInsets.all(16),
+    
+    tabs: [
+      GButton(icon: Icons.home, text: 'Home'),
+      GButton(icon: Icons.local_fire_department, text: 'Trending'),
+      GButton(icon: Icons.star, text: 'Favorites'),
+      GButton(icon: Icons.person, text: 'Profile'),
+    ],
+  )
+
+FITUR HISTORY CARD:
+- Muncul di tab Home dan Trending saja
+- Menampilkan komik terakhir yang dibaca
+- Tersembunyi saat scroll ke bawah (UX lebih bersih)
+
+LOGIKA HIDE/SHOW:
+  void _scrollListener() {
+    final direction = _scrollController.position.userScrollDirection;
+    if (direction == ScrollDirection.reverse) {
+      setState(() => _isHistoryCardVisible = false);  // Scroll down = hide
+    } else if (direction == ScrollDirection.forward) {
+      setState(() => _isHistoryCardVisible = true);   // Scroll up = show
+    }
+  }
+
+===============================================================================
+              5. HALAMAN MEMBACA KOMIK
+===============================================================================
+File: lib/features/comics/presentation/screens/read_comic_screen.dart
+
+KENAPA ada halaman ini?
+- Halaman utama untuk membaca gambar chapter komik
+- Mendukung fitur: zoom, auto-scroll, fullscreen, bookmark
+
+STRUKTUR:
++----------------------------------+
+|  Header (AnimatedPositioned)     | <- Back, Ch.Number, Prev/Next, Fullscreen
++----------------------------------+
+|                                  |
+|  InteractiveViewer               | <- Bisa zoom pinch-to-zoom
+|    -> ListView.builder           | <- Scroll vertikal gambar
+|         -> Image.network         | <- Gambar dari server
+|                                  |
++----------------------------------+
+|  Bottom Bar (AnimatedPositioned) | <- Page indicator, Settings, Favorite, AutoPlay
++----------------------------------+
+
+WIDGET YANG DIPAKAI:
++--------------------+--------------------+---------------------------+
+| Widget             | Fungsi             | Kenapa?                   |
++--------------------+--------------------+---------------------------+
+| InteractiveViewer  | Zoom & pan support | User bisa zoom gambar     |
+| ListView.builder   | List scroll        | Tampilkan gambar vertikal |
+| AnimatedPositioned | Animasi show/hide  | Header/footer animasi     |
+| GestureDetector    | Deteksi tap        | Toggle menu visibility    |
+| ScrollController   | Kontrol scroll     | Track halaman, auto-scroll|
+| Timer              | Auto-scroll        | Scroll otomatis 3 detik   |
+| SystemChrome       | Fullscreen mode    | Hide/show status bar      |
++--------------------+--------------------+---------------------------+
+
+FITUR-FITUR UTAMA:
+
+A. Toggle Menu Visibility
+   - Tap di area gambar = show/hide header & footer
+   - Menggunakan setState() untuk update _isMenuVisible
+
+B. Auto-Play (Auto Scroll)
+   - Timer setiap 3 detik scroll ke halaman berikutnya
+   - Berhenti otomatis di halaman terakhir
+   
+   void _startAutoPlay() {
+     _autoPlayTimer = Timer.periodic(Duration(seconds: 3), (timer) {
+       if (_currentPage < _totalPages) {
+         _nextPage();
+       } else {
+         _stopAutoPlay();
+       }
+     });
+   }
+
+C. Fullscreen Mode
+   - Sembunyikan status bar & navigation bar Android/iOS
+   - Menggunakan SystemChrome.setEnabledSystemUIMode()
+
+D. Tracking Halaman
+   - Estimasi halaman berdasarkan posisi scroll
+   - Update indicator "1/50" secara realtime
+
+E. Simpan History Otomatis
+   - Setiap buka chapter, simpan ke SQLite
+   - Method upsertHistory() = insert jika baru, update jika sudah ada
+
+F. Navigasi Chapter (Prev/Next)
+   - Tombol di header untuk pindah chapter
+   - Tombol di akhir halaman setelah selesai baca
+
+===============================================================================
+              6. HALAMAN TRENDING
+===============================================================================
+File: lib/features/trending/presentation/screens/trending_screen.dart
+
+KENAPA ada halaman ini?
+- Menampilkan Top 10 komik paling populer
+- Memberikan rekomendasi kepada pengguna
+
+BAGAIMANA implementasinya?
+
+  void initState() {
+    // Fetch data trending dari API endpoint /top
+    _trendingFuture = _comicApi.getComics('/top');
+  }
+
+STRUKTUR:
++----------------------------------+
+|  SearchBar                       | <- Ketik untuk cari komik
++----------------------------------+
+|  Text: "#Trending Top 10"        | <- Judul halaman
++----------------------------------+
+|  FutureBuilder                   |
+|    -> ListView.builder           |
+|         -> ComicListItem         | <- Item dengan ranking 1, 2, 3...
++----------------------------------+
+
+WIDGET YANG DIPAKAI:
+- FutureBuilder   : Menunggu async data sebelum render
+- ListView.builder: List scroll untuk trending items
+- ComicListItem   : Widget custom dengan tampilan ranking
+- SearchBar       : Custom component untuk pencarian
+
+LOGIKA FUTUREBUILDER:
+
+  FutureBuilder<ComicResponse>(
+    future: _trendingFuture,
+    builder: (context, snapshot) {
+      // State 1: Loading
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return CircularProgressIndicator();
+      }
+      // State 2: Error
+      else if (snapshot.hasError) {
+        return Text("Error: ${snapshot.error}");
+      }
+      // State 3: Data kosong
+      else if (!snapshot.hasData) {
+        return Text("Data trending kosong");
+      }
+      // State 4: Success
+      return ListView.builder(...);
+    },
+  )
+
+===============================================================================
+              7. HALAMAN PENCARIAN
+===============================================================================
+File: lib/features/dashboard/presentation/screens/search_results_screen.dart
+
+KENAPA ada halaman ini?
+- Memungkinkan pengguna mencari komik berdasarkan judul
+- Menampilkan hasil pencarian dalam grid layout
+
+BAGAIMANA?
+
+  void initState() {
+    _searchController.text = widget.initialQuery;
+    if (widget.initialQuery.isNotEmpty) {
+      _performSearch(widget.initialQuery);  // Langsung cari
+    }
+  }
+
+STRUKTUR:
++----------------------------------+
+|  AppBar: "Cari Komik"            |
++----------------------------------+
+|  Search Input Field              | <- TextField dengan icon search & clear
++----------------------------------+
+|                                  |
+|  GridView.builder                | <- Grid 3 kolom
+|    -> ComicCard                  | <- Card dengan cover & title
+|                                  |
++----------------------------------+
+
+WIDGET YANG DIPAKAI:
+- TextField      : Input pencarian
+- GridView.builder: Tampilkan hasil dalam grid
+- SliverGridDelegateWithFixedCrossAxisCount: Atur 3 kolom
+- ComicCard      : Widget custom untuk card komik
+
+LOGIKA PENCARIAN:
+
+  Future<void> _performSearch(String query) async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    
+    try {
+      final response = await _comicApi.searchComics(query);
+      setState(() {
+        _results = response.comics;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+HANDLING STATE UI:
+  1. Loading      -> Tampilkan CircularProgressIndicator
+  2. Error        -> Tampilkan pesan error + tombol retry
+  3. Tidak ada    -> Tampilkan "Tidak ditemukan hasil"
+  4. Belum search -> Tampilkan "Ketik judul untuk mencari"
+  5. Ada hasil    -> Tampilkan GridView
+
+KONFIGURASI GRID:
+  GridView.builder(
+    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: 3,        // 3 kolom
+      childAspectRatio: 0.55,   // Rasio tinggi/lebar
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 16,
+    ),
+    ...
+  )
+
+===============================================================================
+              RINGKASAN POIN PENTING
+===============================================================================
+
+PACKAGE UTAMA:
++------------------+--------------------------------------+
+| Package          | Kegunaan                             |
++------------------+--------------------------------------+
+| http             | HTTP request ke REST API             |
+| sqflite          | SQLite database lokal                |
+| google_nav_bar   | Bottom navigation modern             |
+| path             | Manipulasi path file                 |
++------------------+--------------------------------------+
+
+PATTERN YANG DIGUNAKAN:
++----------------+----------------+--------------------------------+
+| Pattern        | Lokasi         | Penjelasan                     |
++----------------+----------------+--------------------------------+
+| Singleton      | DatabaseHelper | Satu instance untuk seluruh app|
+| FutureBuilder  | Trending,Search| Async data loading             |
+| StatefulWidget | Semua screen   | State management lokal         |
+| Model Class    | models/        | Data class untuk parsing JSON  |
++----------------+----------------+--------------------------------+
+
+ALUR DATA:
+
+  API Server ---(HTTP GET)---> Response JSON ---(Parse)---> Model Object
+                                                                 |
+                                                                 v
+  Widget UI <---(Display)--- State Variable <---(setState)--- Data Fetched
+
+===============================================================================
+              TIPS MENJAWAB PERTANYAAN
+===============================================================================
+
+Jika ditanya "KENAPA pakai X?"
+- Fokus pada KEBUTUHAN/MASALAH yang dipecahkan
+- Contoh: "Kenapa pakai SQLite?" 
+  -> "Untuk menyimpan data lokal agar user bisa lihat history tanpa internet"
+
+Jika ditanya "BAGAIMANA cara kerjanya?"
+- Jelaskan STEP-BY-STEP logika
+- Tunjukkan KODE PENDEK yang relevan
+
+Jika ditanya "DARIMANA datanya?"
+- Untuk data ONLINE: dari REST API (sebutkan endpoint)
+- Untuk data LOKAL: dari SQLite database (sebutkan tabel)
+
+===============================================================================
+         Dokumen ini dibuat berdasarkan analisis kode sumber aplikasi
+===============================================================================

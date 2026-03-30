@@ -351,7 +351,6 @@ class _ReadComicScreenState extends State<ReadComicScreen> {
               onTap: _toggleMenu,
               child: Stack(
                 children: [
-                  // --- LAPISAN 1: LIST GAMBAR ---
                   InteractiveViewer(
                     minScale: 1.0,
                     maxScale: 3.0,
